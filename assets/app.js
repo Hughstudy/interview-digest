@@ -72,6 +72,21 @@ function splitTitle(title, entry) {
   return { kicker: "", headline: "每日精选" };
 }
 
+/* Display title for an entry: the video's 标题 (from 视频信息) when the report has one, since the
+ * first heading of daily reports is the same every day. The show name (节目) becomes the label. */
+function titleOf(entry) {
+  const h1 = splitTitle(entry.title, entry);
+  if (!entry.videoTitle) return h1;
+  return { kicker: entry.show || [h1.kicker, h1.headline].filter(Boolean).join(" · "), headline: entry.videoTitle };
+}
+
+/* Same fields read straight from markdown, for the reader when manifest.json is unavailable */
+function headerField(md, label) {
+  const head = md.split(/\r?\n/).slice(0, 60).join("\n");
+  const m = new RegExp(`^\\s*\\**\\s*${label}\\s*\\**\\s*[：:]\\s*\\**\\s*(.+?)\\s*$`, "m").exec(head);
+  return m ? m[1].replace(/[*_`]/g, "").trim() : "";
+}
+
 function kindBadge(kind) {
   if (kind === "extra") return `<span class="badge is-extra">Extra · 加更</span>`;
   if (kind === "daily") return `<span class="badge">Daily · 日报</span>`;
@@ -204,8 +219,8 @@ const spiral = {
       const p = e.date ? dateParts(e.date) : null;
       return `<a class="sp-item${e.kind === "extra" ? " is-extra" : ""}" href="${readUrl(e.slug)}">` +
         `<span class="sp-card"><span class="sp-top"><span class="sp-date">${p ? `${p.mm}.${p.dd}` : ""}</span><i></i></span>` +
-        `<span class="sp-title">${esc(splitTitle(e.title, e).headline)}</span>` +
-        `<span class="sp-kind">${e.kind === "extra" ? "Extra" : "Daily"}</span></span></a>`;
+        `<span class="sp-title">${esc(titleOf(e).headline)}</span>` +
+        `<span class="sp-kind">${esc(e.show || (e.kind === "extra" ? "Extra" : "Daily"))}</span></span></a>`;
     }).join("");
     this.items = [...this.list.children];
     this.layout();
@@ -289,7 +304,7 @@ function renderTicker(entries) {
   if (!band) return;
   const items = entries.slice(0, 12).map((e) => {
     const p = e.date ? dateParts(e.date) : null;
-    return `<a class="ticker-item" href="${readUrl(e.slug)}"><span>${p ? `${p.mm}.${p.dd}` : ""} · ${e.kind === "extra" ? "Extra" : "Daily"}</span><b>${esc(splitTitle(e.title, e).headline)}</b></a>`;
+    return `<a class="ticker-item" href="${readUrl(e.slug)}"><span>${p ? `${p.mm}.${p.dd}` : ""} · ${e.kind === "extra" ? "Extra" : "Daily"}</span><b>${esc(titleOf(e).headline)}</b></a>`;
   }).join("");
   band.innerHTML = `<div class="ticker-track"><div class="ticker-group">${items}</div></div>`;
 }
@@ -297,7 +312,7 @@ function renderTicker(entries) {
 function renderLatest(entries) {
   const lead = entries[0];
   const p = lead.date ? dateParts(lead.date) : null;
-  const { kicker, headline } = splitTitle(lead.title, lead);
+  const { kicker, headline } = titleOf(lead);
   const sameDay = entries.filter((e) => e !== lead && e.date && e.date === lead.date);
 
   $("#latest").innerHTML = `
@@ -320,7 +335,7 @@ function renderLatest(entries) {
             ${sameDay.map((e) => `
               <a class="sibling" href="${readUrl(e.slug)}">
                 ${kindBadge(e.kind)}
-                <span class="sibling-title">${esc(splitTitle(e.title, e).headline)}</span>
+                <span class="sibling-title">${esc(titleOf(e).headline)}</span>
                 <span class="arrow">→</span>
               </a>`).join("")}
           </div>` : ""}
@@ -362,7 +377,7 @@ function initArchive(entries, counts) {
     const ql = q.toLowerCase();
     const list = entries.filter((e) =>
       (filter === "all" || e.kind === filter) &&
-      (!ql || `${e.title} ${e.summary} ${e.slug}`.toLowerCase().includes(ql)));
+      (!ql || `${e.title} ${e.videoTitle || ""} ${e.show || ""} ${e.summary} ${e.slug}`.toLowerCase().includes(ql)));
 
     if (!list.length) {
       $("#archive-list").innerHTML = `<div class="empty">没有匹配「${esc(q)}」的内容</div>`;
@@ -387,7 +402,7 @@ function initArchive(entries, counts) {
         <div class="grid">
           ${items.map((e) => {
             const p = e.date ? dateParts(e.date) : null;
-            const { kicker, headline } = splitTitle(e.title, e);
+            const { kicker, headline } = titleOf(e);
             return `
               <a class="card ${e.kind === "extra" ? "is-extra" : ""}" href="${readUrl(e.slug)}">
                 <div class="card-top">
@@ -434,7 +449,12 @@ async function initReader(updateScroll) {
   // Title = first H1 (removed from body since the header shows it)
   let title = entry.title || "";
   const src = md.replace(/^\uFEFF/, "").replace(/^\s*#\s+(.+?)\s*#*\s*$/m, (_, h) => { if (!title) title = h; return ""; });
-  const { kicker, headline } = splitTitle(title, entry);
+  const videoTitle = entry.videoTitle || headerField(src, "标题");
+  const show = entry.show || headerField(src, "节目").replace(/\s*[（(].*$/, "");
+  const h1 = splitTitle(title, entry);
+  const { kicker, headline } = videoTitle
+    ? { kicker: [h1.kicker, h1.headline, show].filter(Boolean).join(" · "), headline: videoTitle }
+    : h1;
   document.title = `${headline} · ${CONFIG.siteName}`;
 
   // Render markdown -> sanitized HTML -> enhance
@@ -468,7 +488,7 @@ async function initReader(updateScroll) {
     const newer = i > 0 ? entries[i - 1] : null;
     const older = i >= 0 && i < entries.length - 1 ? entries[i + 1] : null;
     const cell = (e, cls, label) => e
-      ? `<a class="${cls}" href="${readUrl(e.slug)}"><span class="mono">${label} · ${esc(e.date || "")}</span><b>${esc(splitTitle(e.title, e).headline)}</b></a>`
+      ? `<a class="${cls}" href="${readUrl(e.slug)}"><span class="mono">${label} · ${esc(e.date || "")}</span><b>${esc(titleOf(e).headline)}</b></a>`
       : `<span class="${cls}"><span class="mono">${label}</span><b style="color:var(--ink-3)">—</b></span>`;
     $("#doc-nav").innerHTML = cell(older, "prev", "← Older") + cell(newer, "next", "Newer →");
   }
@@ -496,7 +516,8 @@ function enhanceProse(root) {
   root.querySelectorAll("p").forEach((p) => {
     if (!p.querySelector("br")) return;
     const lines = p.innerHTML.split(/<br\s*\/?>\s*/i).map((s) => s.trim()).filter(Boolean);
-    const re = /^([^<>：:]{1,12})[：:]\s*([\s\S]*)$/;
+    // "标签： 内容", also with the label in bold: "<strong>标签：</strong> 内容" or "<strong>标签</strong>："
+    const re = /^(?:<strong>)?([^<>：:]{1,12})(?:<\/strong>)?[：:]\s*(?:<\/strong>)?\s*([\s\S]*)$/;
     if (lines.length < 2 || !lines.every((l) => re.test(l))) return;
     const dl = document.createElement("dl");
     dl.className = "meta";

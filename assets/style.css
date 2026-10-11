@@ -339,7 +339,7 @@ button { font: inherit; color: inherit; }
   line-height: 1.38;
   color: var(--ink);
 }
-.sp-kind { margin-top: auto; font-family: var(--f-mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); }
+.sp-kind { margin-top: auto; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-family: var(--f-mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); }
 .sp-item.is-extra .sp-kind { color: var(--extra); }
 
 .spiral-items:hover .sp-item:not(:hover) { filter: opacity(0.45); }
