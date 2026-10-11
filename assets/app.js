@@ -10,7 +10,7 @@ const CONFIG = {
   contentDir: "InterviewMarkdown/",
   manifest: "manifest.json",
   charsPerMinute: 450,
-  spiralCount: 24, // recent titles placed on the homepage spiral
+  spiralCount: 12, // most recent reports placed on the homepage spiral
 };
 
 const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
@@ -260,7 +260,7 @@ const spiral = {
     const L = len[len.length - 1];
     // only as many cards as the path can hold without overlapping
     const count = Math.max(1, Math.min(this.items.length, Math.floor(L / (card * 1.75))));
-    Object.assign(this, { xs, ys, len, L, count });
+    Object.assign(this, { xs, ys, len, L, count, card });
     this.items.forEach((el, i) => { el.hidden = i >= count; });
 
     const svg = this.path.ownerSVGElement;
@@ -277,20 +277,22 @@ const spiral = {
     return { x: xs[lo] + (xs[hi] - xs[lo]) * f, y: ys[lo] + (ys[hi] - ys[lo]) * f };
   },
 
-  // shift (px along the curve) slides every card outward; a card leaving the outer end re-enters at the centre.
-  // Cards only translate (and grow slightly with distance), they never rotate.
+  // shift (px along the curve) slides every card outward; a card leaving the end of its loop re-enters at the
+  // centre. With few cards the loop covers only the inner part of the spiral, so they stay close together and
+  // on screen. Cards only translate (and grow slightly with distance), they never rotate.
   render(shift) {
     if (!this.L) return;
     this.shift = shift;
-    const L = this.L, gap = L / this.count, first = gap * 0.35;
+    const loop = Math.min(this.L, this.count * this.card * 2.3);
+    const gap = loop / this.count, first = gap * 0.35;
     for (let i = 0; i < this.count; i++) {
       const el = this.items[i];
-      let s = (first + i * gap + shift) % L;
-      if (s < 0) s += L;
-      const u = s / L;
+      let s = (first + i * gap + shift) % loop;
+      if (s < 0) s += loop;
+      const u = s / this.L, v = s / loop;
       const p = this.pointAt(s);
       const scale = 0.9 + u * 0.18;
-      const fade = Math.min(1, u / 0.04, (1 - u) / 0.08);
+      const fade = Math.min(1, v / 0.05, (1 - v) / 0.1);
       el.style.transform = `translate(${p.x.toFixed(1)}px,${p.y.toFixed(1)}px) scale(${scale.toFixed(3)})`;
       el.style.setProperty("--o", Math.max(0, fade).toFixed(3));
       el.style.zIndex = String(Math.round(u * 100));
