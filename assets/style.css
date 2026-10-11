@@ -79,6 +79,7 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+  overflow-x: clip;
   transition: background-color 0.25s ease, color 0.25s ease;
 }
 
@@ -282,9 +283,11 @@ button { font: inherit; color: inherit; }
   min-height: min(78vh, 720px);
   display: grid;
   grid-template-rows: auto 1fr auto;
-  overflow: hidden;
   border-bottom: 1px solid var(--line);
 }
+
+/* Rings get their own clipping box so the wordmark letters can fly out of the hero */
+.hero-bg { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
 
 .hero-rings {
   position: absolute;
@@ -328,9 +331,12 @@ button { font: inherit; color: inherit; }
   letter-spacing: -0.02em;
   text-transform: uppercase;
 }
-.wordmark span { display: block; }
-.wordmark span:nth-child(2) {
-  color: transparent;
+.wordmark { position: relative; z-index: 60; }
+.wm-word { display: block; white-space: nowrap; }
+.wm-l { display: inline-block; will-change: transform; }
+/* --fill (0..1) is animated so the outline word turns solid as it docks */
+.wm-word.is-outline .wm-l {
+  color: color-mix(in srgb, var(--ink) calc(var(--fill, 0) * 100%), transparent);
   -webkit-text-stroke: 1.5px var(--ink);
 }
 
@@ -365,20 +371,166 @@ button { font: inherit; color: inherit; }
   line-height: 1.1;
 }
 
-.hero-index { display: flex; flex-direction: column; align-items: flex-end; }
-.hero-index a {
+.hero-hint { color: var(--ink-3); margin-right: 150px; animation: nudge 2.4s ease-in-out infinite; }
+@keyframes nudge { 50% { transform: translateY(4px); } }
+
+/* Fixed section index, bottom-right (active item follows the scroll) */
+.side-index {
+  position: fixed;
+  right: 40px;
+  bottom: 22px;
+  z-index: 45;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  padding: 6px 8px;
+  background: color-mix(in srgb, var(--bg) 72%, transparent);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.side-index a {
+  display: flex;
+  align-items: center;
+  gap: 7px;
   font-family: var(--f-display);
   font-stretch: 112%;
   font-weight: 700;
-  font-size: 15px;
-  line-height: 1.12;
+  font-size: 14px;
+  line-height: 1.18;
   letter-spacing: 0.02em;
   text-transform: uppercase;
   text-decoration: none;
   color: var(--ink-3);
-  transition: color 0.15s;
+  transition: color 0.3s, transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
-.hero-index a:hover { color: var(--ink); }
+.side-index a::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  background: var(--accent);
+  transform: scale(0);
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.side-index a:hover { color: var(--ink); }
+.side-index a.is-active { color: var(--ink); transform: translateX(-4px); }
+.side-index a.is-active::after { transform: scale(1); }
+
+/* Small docked wordmark in the nav: the hero letters fly into it */
+.nav-wordmark {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  padding: 0 12px;
+  font-family: var(--f-display);
+  font-stretch: 125%;
+  font-weight: 900;
+  font-size: 13px;
+  line-height: 0.84;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  text-decoration: none;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.nav-wordmark .wm-gap { display: inline-block; width: 0.5em; }
+html:not(.motion) .nav-wordmark, .wm-docked .nav-wordmark { opacity: 1; }
+.wm-docked .wordmark { visibility: hidden; }
+
+/* Headline ticker under the hero */
+.ticker {
+  overflow: hidden;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg-2);
+}
+.ticker-track { display: flex; white-space: nowrap; will-change: transform; }
+.ticker-group { display: flex; }
+.ticker-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 0 0 28px;
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--ink-3);
+}
+.ticker-item b { font-family: var(--f-cjk-bold); font-size: 14px; font-weight: 700; letter-spacing: 0; color: var(--ink); }
+.ticker-item::after { content: ""; width: 7px; height: 7px; margin-left: 14px; border: 1.5px solid var(--ink-3); transform: rotate(45deg); }
+.ticker-item:hover b { text-decoration: underline; text-underline-offset: 4px; }
+
+/* Vertical section name inside the ruler */
+.ruler-label {
+  position: absolute;
+  left: 3px;
+  bottom: 120px;
+  width: 12px;
+  height: 140px;
+  overflow: hidden;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+}
+.ruler-label span {
+  position: absolute;
+  inset: 0;
+  font-family: var(--f-display);
+  font-stretch: 112%;
+  font-weight: 800;
+  font-size: 11px;
+  line-height: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+/* Reveal-on-enter (only when the motion layer is active) */
+.motion [data-split] .w { display: inline-block; white-space: nowrap; }
+.motion [data-split] .ch { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: 0.08em; margin-bottom: -0.08em; }
+.motion [data-split] .ch > span {
+  display: inline-block;
+  transform: translateY(110%);
+  transition: transform 0.95s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition-delay: calc(min(var(--i), 40) * 26ms);
+}
+.motion [data-split].is-in .ch > span { transform: none; }
+
+.motion .reveal {
+  opacity: 0;
+  transform: translateY(26px);
+  transition: opacity 0.8s ease, transform 0.95s cubic-bezier(0.2, 0.8, 0.2, 1), background-color 0.18s ease;
+  transition-delay: var(--d, 0ms);
+}
+.motion .reveal.is-in { opacity: 1; transform: none; }
+.motion .card.reveal.is-in:hover { transition-delay: 0ms; }
+
+.motion .section-head { position: relative; }
+.motion .section-head::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  background: var(--ink);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 1.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.motion .section-head.is-in::after { transform: scaleX(1); }
+
+.fm-l { display: inline-block; color: color-mix(in srgb, var(--ink) calc(var(--fill, 0) * 100%), transparent); }
+
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+.lenis.lenis-stopped { overflow: hidden; }
 
 /* --------------------------------------------------------------------------
    Featured (latest)
@@ -870,16 +1022,19 @@ mark { background: var(--mark-bg); color: inherit; padding: 0 1px; }
   .doc-meta > div:nth-child(2) { border-right: 0; }
   .doc-meta > div:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
   .nav-meta { display: none; }
+  .side-index { display: none; }
+  .hero-hint { margin-right: 0; }
 }
 
 @media (max-width: 640px) {
-  .nav-links { padding: 0 6px; }
-  .nav-links a:not(.is-active) { display: none; }
+  .nav-links { display: none; }
+  .cta-long { display: none; }
+  .nav-wordmark { font-size: 11px; justify-content: flex-start; }
   .nav-cta { padding: 0 14px; }
   .hero { min-height: 560px; }
   .hero-top .mono:last-child { display: none; }
   .hero-bottom { flex-direction: column; align-items: stretch; }
-  .hero-index { flex-direction: row; gap: 16px; justify-content: flex-end; }
+  .hero-hint { display: none; }
   .stats { overflow-x: auto; }
   .stat { min-width: 0; flex: 1; padding: 8px 10px; }
   .stat b { font-size: 18px; }
@@ -901,3 +1056,6 @@ mark { background: var(--mark-bg); color: inherit; padding: 0 1px; }
   *, *::before, *::after { animation: none !important; transition: none !important; }
   html { scroll-behavior: auto; }
 }
+
+/* GSAP drives the rings while the motion layer is on */
+.motion .hero-rings { animation: none; }

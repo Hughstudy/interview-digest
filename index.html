@@ -11,6 +11,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js" defer></script>
 </head>
 <body data-page="home">
   <header class="nav">
@@ -22,17 +25,27 @@
       <a href="#latest-section">Latest</a>
       <a href="#archive">Archive</a>
     </nav>
-    <div class="nav-spacer"></div>
+    <a class="nav-wordmark" href="./"></a>
     <span class="nav-meta" id="nav-date"></span>
     <button class="nav-icon" id="theme-toggle" aria-label="Toggle theme"></button>
-    <a class="nav-cta" id="nav-latest" href="#latest-section">Read latest <span class="arrow">→</span></a>
+    <a class="nav-cta" id="nav-latest" href="#latest-section"><span class="cta-long">Read&nbsp;</span>latest <span class="arrow">→</span></a>
   </header>
 
-  <div class="ruler" aria-hidden="true"><div class="ruler-mark"><span>00</span></div></div>
+  <div class="ruler" aria-hidden="true">
+    <div class="ruler-mark"><span>00</span></div>
+    <div class="ruler-label"></div>
+  </div>
+
+  <nav class="side-index" aria-label="Sections">
+    <a href="#hero">Index</a>
+    <a href="#latest-section">Latest</a>
+    <a href="#archive">Archive</a>
+    <a href="#about">About</a>
+  </nav>
 
   <main class="page">
-    <section class="hero">
-      <div class="hero-rings" aria-hidden="true"></div>
+    <section class="hero" id="hero" data-section="Index">
+      <div class="hero-bg" aria-hidden="true"><div class="hero-rings"></div></div>
       <div class="hero-top">
         <span class="mono">00 / Index</span>
         <span class="mono">Markdown · Rendered daily</span>
@@ -43,15 +56,13 @@
       </div>
       <div class="hero-bottom">
         <div class="stats" id="stats"></div>
-        <nav class="hero-index">
-          <a href="#latest-section">Latest</a>
-          <a href="#archive">Archive</a>
-          <a href="#about">About</a>
-        </nav>
+        <span class="mono hero-hint">Scroll ↓</span>
       </div>
     </section>
 
-    <section class="section" id="latest-section">
+    <div class="ticker" id="ticker" aria-label="Recent headlines"></div>
+
+    <section class="section" id="latest-section" data-section="Latest">
       <div class="section-head">
         <span class="mono">01 / Latest issue</span>
         <h2 class="section-title">Latest</h2>
@@ -59,7 +70,7 @@
       <div id="latest"><div class="empty mono">Loading…</div></div>
     </section>
 
-    <section class="section" id="archive">
+    <section class="section" id="archive" data-section="Archive">
       <div class="section-head">
         <span class="mono" id="archive-count">02 / Archive</span>
         <h2 class="section-title">Archive</h2>
@@ -75,7 +86,7 @@
       <div id="archive-list"></div>
     </section>
 
-    <footer class="footer" id="about">
+    <footer class="footer" id="about" data-section="About">
       <div class="footer-mark">Digest</div>
       <div class="footer-notes mono">
         Daily → <code>InterviewMarkdown/yyyy-mm-dd.md</code><br>
@@ -85,7 +96,7 @@
     </footer>
   </main>
 
-  <button class="to-top" aria-label="Back to top">↑</button>
-  <script src="assets/app.js"></script>
+  <script src="assets/app.js" defer></script>
+  <script src="assets/motion.js" defer></script>
 </body>
 </html>

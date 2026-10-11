@@ -23,6 +23,16 @@ function esc(s) {
   return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
 
+/* Per-letter spans; the motion layer animates these */
+function letters(word) {
+  return [...word].map((c) => `<span class="wm-l">${esc(c)}</span>`).join("");
+}
+
+/* Tell the motion layer (motion.js) that new content is in the DOM */
+function emit(what) {
+  document.dispatchEvent(new CustomEvent("digest:render", { detail: { what } }));
+}
+
 function readUrl(slug) {
   return `read.html?f=${encodeURIComponent(slug)}`;
 }
@@ -142,7 +152,10 @@ function setLatestLink(entries) {
 
 async function initHome() {
   const wm = $("#wordmark");
-  wm.innerHTML = CONFIG.wordmark.map((w) => `<span>${esc(w)}</span>`).join("");
+  wm.setAttribute("aria-label", CONFIG.wordmark.join(" "));
+  wm.innerHTML = CONFIG.wordmark
+    .map((w, i) => `<span class="wm-word${i % 2 ? " is-outline" : ""}" aria-hidden="true">${letters(w)}</span>`)
+    .join("");
   $("#tagline").textContent = CONFIG.tagline;
 
   const entries = await loadManifest();
@@ -169,7 +182,19 @@ async function initHome() {
   $("#archive-count").textContent = `${entries.length} files · ${days} days`;
 
   renderLatest(entries);
+  renderTicker(entries);
   initArchive(entries, { all: entries.length, daily, extra });
+  emit("home");
+}
+
+function renderTicker(entries) {
+  const band = $("#ticker");
+  if (!band) return;
+  const items = entries.slice(0, 12).map((e) => {
+    const p = e.date ? dateParts(e.date) : null;
+    return `<a class="ticker-item" href="${readUrl(e.slug)}"><span>${p ? `${p.mm}.${p.dd}` : ""} · ${e.kind === "extra" ? "Extra" : "Daily"}</span><b>${esc(splitTitle(e.title, e).headline)}</b></a>`;
+  }).join("");
+  band.innerHTML = `<div class="ticker-track"><div class="ticker-group">${items}</div></div>`;
 }
 
 function renderLatest(entries) {
@@ -280,6 +305,7 @@ function initArchive(entries, counts) {
           }).join("")}
         </div>`;
     }).join("");
+    emit("archive");
   }
 
   render();
@@ -355,6 +381,7 @@ async function initReader(updateScroll) {
     if (target) requestAnimationFrame(() => target.scrollIntoView());
   }
   updateScroll();
+  emit("read");
 }
 
 function slugify(text, used) {
@@ -462,6 +489,11 @@ function showState(title, html) {
 
 document.addEventListener("DOMContentLoaded", () => {
   initTheme();
+  const mini = $(".nav-wordmark");
+  if (mini) {
+    mini.setAttribute("aria-label", CONFIG.siteName);
+    mini.innerHTML = CONFIG.wordmark.map(letters).join(`<span class="wm-gap"></span>`);
+  }
   const updateScroll = initScrollChrome();
   if (document.body.dataset.page === "home") initHome();
   if (document.body.dataset.page === "read") initReader(updateScroll);
