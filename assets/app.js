@@ -238,9 +238,11 @@ const spiral = {
     const box = this.root.getBoundingClientRect();
     const w = box.width, h = box.height;
     if (!w || !h || !this.items.length) return;
-    const wm = $("#wordmark"), center = wm.parentElement.getBoundingClientRect();
-    const cx = center.left - box.left + wm.offsetLeft + wm.offsetWidth / 2;
-    const cy = center.top - box.top + wm.offsetTop + wm.offsetHeight / 2;
+    // offsets, not client rects: motion.js scales .hero-center while the hero is pinned, and a relayout
+    // mid-scroll (pinning can resize the hero by a fraction of a pixel) must not pick up that transform
+    const wm = $("#wordmark"), center = wm.parentElement;
+    const cx = center.offsetLeft - this.root.offsetLeft + wm.offsetLeft + wm.offsetWidth / 2;
+    const cy = center.offsetTop - this.root.offsetTop + wm.offsetTop + wm.offsetHeight / 2;
     const card = this.items[0].firstElementChild.offsetWidth || 136;
     // innermost ring clears the wordmark by a little more than half a card
     const rx0 = wm.offsetWidth / 2 + card * 0.62, ry0 = wm.offsetHeight / 2 + card * 0.62;
