@@ -375,8 +375,8 @@ button { font: inherit; color: inherit; }
   position: absolute;
   left: 50%;
   top: 50%;
-  width: min(760px, 92vw);
-  height: min(420px, 60vw);
+  width: min(520px, 84vw);
+  height: min(280px, 48vw);
   transform: translate(-50%, -50%);
   background: radial-gradient(closest-side, var(--bg) 55%, color-mix(in srgb, var(--bg) 0%, transparent));
 }
@@ -387,17 +387,17 @@ button { font: inherit; color: inherit; }
   font-family: var(--f-display);
   font-stretch: 125%;
   font-weight: 900;
-  font-size: clamp(40px, 7.4vw, 112px);
+  font-size: clamp(30px, 4.4vw, 64px);
   line-height: 0.86;
   letter-spacing: -0.02em;
   text-transform: uppercase;
 }
 .wm-word { display: block; white-space: nowrap; }
 .wm-l { display: inline-block; }
-.wm-word.is-outline .wm-l { color: transparent; -webkit-text-stroke: 1.5px var(--ink); }
+.wm-word.is-outline .wm-l { color: transparent; -webkit-text-stroke: 1.2px var(--ink); }
 
 .hero-tagline {
-  margin: 28px 0 0;
+  margin: 18px 0 0;
   font-family: var(--f-mono);
   font-size: 12px;
   letter-spacing: 0.14em;
@@ -413,7 +413,7 @@ button { font: inherit; color: inherit; }
   padding: 0 var(--gutter) 22px;
 }
 
-.stats { display: flex; border: 1px solid var(--line); background: color-mix(in srgb, var(--bg) 80%, transparent); }
+.stats { display: flex; border: 1px solid var(--line-2); background: var(--bg); }
 .stat { padding: 10px 16px; border-right: 1px solid var(--line); min-width: 92px; }
 .stat:last-child { border-right: 0; }
 .stat .mono { display: block; color: var(--ink-3); font-size: 9.5px; }
@@ -1118,3 +1118,6 @@ mark { background: var(--mark-bg); color: inherit; padding: 0 1px; }
 /* Spiral titles stay hidden until placed; with motion on they fade in during the intro */
 .sp-item:not([style]) { visibility: hidden; }
 .motion .sp-item { --in: 0; }
+
+/* Hero corner labels sit on solid chips so spiral cards pass cleanly underneath */
+.hero-top .mono, .hero-hint { background: var(--bg); padding: 3px 6px; margin: -3px -6px; }

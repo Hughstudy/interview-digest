@@ -245,7 +245,7 @@ const spiral = {
     const rx0 = wm.offsetWidth / 2 + card * 0.62, ry0 = wm.offsetHeight / 2 + card * 0.62;
     const reach = Math.hypot(Math.max(cx, w - cx), Math.max(cy, h - cy)) * 0.94;
     // as many turns as fit with a card's worth of space between neighbouring rings
-    const turns = Math.min(3.2, Math.max(1.6, (reach - Math.min(rx0, ry0)) / (card * 1.3)));
+    const turns = Math.min(3, Math.max(1.5, (reach - Math.min(rx0, ry0)) / (card * 1.5)));
     const tMax = turns * Math.PI * 2, start = -Math.PI * 0.62;
 
     const xs = [], ys = [], len = [0];
@@ -259,7 +259,7 @@ const spiral = {
     }
     const L = len[len.length - 1];
     // only as many cards as the path can hold without overlapping
-    const count = Math.max(1, Math.min(this.items.length, Math.floor(L / (card * 1.35))));
+    const count = Math.max(1, Math.min(this.items.length, Math.floor(L / (card * 1.75))));
     Object.assign(this, { xs, ys, len, L, count });
     this.items.forEach((el, i) => { el.hidden = i >= count; });
 
