@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Interview Digest</title>
+  <meta name="description" content="AI 每日抓取的长访谈精读与加更报告">
+  <script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' fill='%23101014'/%3E%3Cpath d='M4 19 9 5h3.5l-5 14zM11 19l5-14h3.5l-5 14z' fill='%23f2f1ee'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-page="home">
+  <header class="nav">
+    <a class="nav-logo" href="./" aria-label="Home">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M2 20 8 4h4.5l-6 16zM11 20l6-16h4.5l-6 16z"/></svg>
+    </a>
+    <nav class="nav-links">
+      <a href="./" class="is-active">Home</a>
+      <a href="#latest-section">Latest</a>
+      <a href="#archive">Archive</a>
+    </nav>
+    <div class="nav-spacer"></div>
+    <span class="nav-meta" id="nav-date"></span>
+    <button class="nav-icon" id="theme-toggle" aria-label="Toggle theme"></button>
+    <a class="nav-cta" id="nav-latest" href="#latest-section">Read latest <span class="arrow">→</span></a>
+  </header>
+
+  <div class="ruler" aria-hidden="true"><div class="ruler-mark"><span>00</span></div></div>
+
+  <main class="page">
+    <section class="hero">
+      <div class="hero-rings" aria-hidden="true"></div>
+      <div class="hero-top">
+        <span class="mono">00 / Index</span>
+        <span class="mono">Markdown · Rendered daily</span>
+      </div>
+      <div class="hero-center">
+        <h1 class="wordmark" id="wordmark"></h1>
+        <p class="hero-tagline" id="tagline"></p>
+      </div>
+      <div class="hero-bottom">
+        <div class="stats" id="stats"></div>
+        <nav class="hero-index">
+          <a href="#latest-section">Latest</a>
+          <a href="#archive">Archive</a>
+          <a href="#about">About</a>
+        </nav>
+      </div>
+    </section>
+
+    <section class="section" id="latest-section">
+      <div class="section-head">
+        <span class="mono">01 / Latest issue</span>
+        <h2 class="section-title">Latest</h2>
+      </div>
+      <div id="latest"><div class="empty mono">Loading…</div></div>
+    </section>
+
+    <section class="section" id="archive">
+      <div class="section-head">
+        <span class="mono" id="archive-count">02 / Archive</span>
+        <h2 class="section-title">Archive</h2>
+      </div>
+      <div class="toolbar">
+        <label class="search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input id="search" type="search" placeholder="搜索标题、摘要、文件名…" autocomplete="off">
+          <span class="kbd">/</span>
+        </label>
+        <div class="seg" id="seg"></div>
+      </div>
+      <div id="archive-list"></div>
+    </section>
+
+    <footer class="footer" id="about">
+      <div class="footer-mark">Digest</div>
+      <div class="footer-notes mono">
+        Daily → <code>InterviewMarkdown/yyyy-mm-dd.md</code><br>
+        Extra → <code>InterviewMarkdown/yyyy-mm-dd-topic.md</code><br>
+        Static · GitHub Pages
+      </div>
+    </footer>
+  </main>
+
+  <button class="to-top" aria-label="Back to top">↑</button>
+  <script src="assets/app.js"></script>
+</body>
+</html>

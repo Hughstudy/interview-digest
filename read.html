@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Interview Digest</title>
+  <script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' fill='%23101014'/%3E%3Cpath d='M4 19 9 5h3.5l-5 14zM11 19l5-14h3.5l-5 14z' fill='%23f2f1ee'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+</head>
+<body data-page="read">
+  <header class="nav">
+    <a class="nav-logo" href="./" aria-label="Home">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M2 20 8 4h4.5l-6 16zM11 20l6-16h4.5l-6 16z"/></svg>
+    </a>
+    <nav class="nav-links">
+      <a href="./">Home</a>
+      <a href="./#archive">Archive</a>
+      <a href="#" class="is-active">Reading</a>
+    </nav>
+    <div class="nav-spacer"></div>
+    <span class="nav-meta" id="nav-date"></span>
+    <button class="nav-icon" id="theme-toggle" aria-label="Toggle theme"></button>
+    <a class="nav-cta" id="nav-latest" href="./">Latest <span class="arrow">→</span></a>
+    <div class="progress"></div>
+  </header>
+
+  <div class="ruler" aria-hidden="true"><div class="ruler-mark"><span>00</span></div></div>
+
+  <main class="page">
+    <section class="doc-head">
+      <div class="crumbs" id="crumbs"><span class="mono">Loading…</span></div>
+      <div class="doc-title-wrap" id="doc-title-wrap"></div>
+      <div class="doc-meta" id="doc-meta"></div>
+    </section>
+
+    <div class="doc-layout" id="doc-layout">
+      <article class="doc-body">
+        <div class="prose" id="doc-body">
+          <div class="skeleton"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        </div>
+      </article>
+      <aside class="toc" id="toc"></aside>
+    </div>
+
+    <nav class="doc-nav" id="doc-nav"></nav>
+
+    <footer class="footer">
+      <div class="footer-mark">Digest</div>
+      <div class="footer-notes mono"><a href="./">← Back to archive</a></div>
+    </footer>
+  </main>
+
+  <button class="to-top" aria-label="Back to top">↑</button>
+  <script src="assets/app.js"></script>
+</body>
+</html>
