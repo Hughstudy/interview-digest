@@ -1,15 +1,16 @@
-/* Interview Digest — static markdown reader for GitHub Pages.
+/* AI PodCast — static markdown reader for GitHub Pages.
  * Homepage (index.html) lists entries from manifest.json; read.html renders one file.
  * manifest.json is produced by scripts/build-manifest.ps1 (run locally or by the deploy workflow).
  */
 
 const CONFIG = {
-  siteName: "Interview Digest",
-  wordmark: ["Interview", "Digest"],
+  siteName: "AI PodCast",
+  wordmark: ["AI", "PodCast"],
   tagline: "AI 每日抓取 · 长访谈精读",
   contentDir: "InterviewMarkdown/",
   manifest: "manifest.json",
   charsPerMinute: 450,
+  spiralCount: 24, // recent titles placed on the homepage spiral
 };
 
 const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
@@ -183,9 +184,105 @@ async function initHome() {
 
   renderLatest(entries);
   renderTicker(entries);
+  spiral.init(entries);
   initArchive(entries, { all: entries.length, daily, extra });
   emit("home");
 }
+
+/* Spiral of recent titles winding out from the wordmark. Titles are upright links placed
+ * along the curve; render(shift) slides them outward along it (motion.js animates shift). */
+const spiral = {
+  items: [],
+  shift: 0,
+
+  init(entries) {
+    this.root = $("#spiral");
+    if (!this.root) return;
+    this.list = this.root.querySelector(".spiral-items");
+    this.path = this.root.querySelector(".spiral-line path");
+    this.list.innerHTML = entries.slice(0, CONFIG.spiralCount).map((e) => {
+      const p = e.date ? dateParts(e.date) : null;
+      return `<a class="sp-item${e.kind === "extra" ? " is-extra" : ""}" href="${readUrl(e.slug)}">` +
+        `<span class="sp-card"><span class="sp-top"><span class="sp-date">${p ? `${p.mm}.${p.dd}` : ""}</span><i></i></span>` +
+        `<span class="sp-title">${esc(splitTitle(e.title, e).headline)}</span>` +
+        `<span class="sp-kind">${e.kind === "extra" ? "Extra" : "Daily"}</span></span></a>`;
+    }).join("");
+    this.items = [...this.list.children];
+    this.layout();
+    // ...and again whenever the hero's size settles or changes (fonts, pinning, window resize)
+    let frame;
+    new ResizeObserver(() => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => this.layout());
+    }).observe(this.root);
+  },
+
+  // Sample the curve: an Archimedean spiral stretched from around the wordmark out towards the corners
+  layout() {
+    const box = this.root.getBoundingClientRect();
+    const w = box.width, h = box.height;
+    if (!w || !h || !this.items.length) return;
+    const wm = $("#wordmark"), center = wm.parentElement.getBoundingClientRect();
+    const cx = center.left - box.left + wm.offsetLeft + wm.offsetWidth / 2;
+    const cy = center.top - box.top + wm.offsetTop + wm.offsetHeight / 2;
+    const card = this.items[0].firstElementChild.offsetWidth || 136;
+    // innermost ring clears the wordmark by a little more than half a card
+    const rx0 = wm.offsetWidth / 2 + card * 0.62, ry0 = wm.offsetHeight / 2 + card * 0.62;
+    const reach = Math.hypot(Math.max(cx, w - cx), Math.max(cy, h - cy)) * 0.94;
+    // as many turns as fit with a card's worth of space between neighbouring rings
+    const turns = Math.min(3.2, Math.max(1.6, (reach - Math.min(rx0, ry0)) / (card * 1.3)));
+    const tMax = turns * Math.PI * 2, start = -Math.PI * 0.62;
+
+    const xs = [], ys = [], len = [0];
+    for (let t = 0; t <= tMax; t += 0.015) {
+      const k = t / tMax;
+      const rx = rx0 + (reach - rx0) * k, ry = ry0 + (reach - ry0) * k;
+      xs.push(cx + rx * Math.cos(start + t));
+      ys.push(cy + ry * Math.sin(start + t));
+      const n = xs.length - 1;
+      if (n) len.push(len[n - 1] + Math.hypot(xs[n] - xs[n - 1], ys[n] - ys[n - 1]));
+    }
+    const L = len[len.length - 1];
+    // only as many cards as the path can hold without overlapping
+    const count = Math.max(1, Math.min(this.items.length, Math.floor(L / (card * 1.35))));
+    Object.assign(this, { xs, ys, len, L, count });
+    this.items.forEach((el, i) => { el.hidden = i >= count; });
+
+    const svg = this.path.ownerSVGElement;
+    svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+    this.path.setAttribute("d", "M" + xs.map((x, i) => `${x.toFixed(1)},${ys[i].toFixed(1)}`).join("L"));
+    this.render(this.shift);
+  },
+
+  pointAt(s) {
+    const { len, xs, ys } = this;
+    let lo = 0, hi = len.length - 1;
+    while (lo < hi - 1) { const mid = (lo + hi) >> 1; if (len[mid] < s) lo = mid; else hi = mid; }
+    const f = (s - len[lo]) / (len[hi] - len[lo] || 1);
+    return { x: xs[lo] + (xs[hi] - xs[lo]) * f, y: ys[lo] + (ys[hi] - ys[lo]) * f };
+  },
+
+  // shift (px along the curve) slides every card outward; a card leaving the outer end re-enters at the centre.
+  // Cards only translate (and grow slightly with distance), they never rotate.
+  render(shift) {
+    if (!this.L) return;
+    this.shift = shift;
+    const L = this.L, gap = L / this.count, first = gap * 0.35;
+    for (let i = 0; i < this.count; i++) {
+      const el = this.items[i];
+      let s = (first + i * gap + shift) % L;
+      if (s < 0) s += L;
+      const u = s / L;
+      const p = this.pointAt(s);
+      const scale = 0.9 + u * 0.18;
+      const fade = Math.min(1, u / 0.04, (1 - u) / 0.08);
+      el.style.transform = `translate(${p.x.toFixed(1)}px,${p.y.toFixed(1)}px) scale(${scale.toFixed(3)})`;
+      el.style.setProperty("--o", Math.max(0, fade).toFixed(3));
+      el.style.zIndex = String(Math.round(u * 100));
+    }
+  },
+};
+window.spiral = spiral;
 
 function renderTicker(entries) {
   const band = $("#ticker");

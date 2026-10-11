@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Interview Digest — editorial / technical look
+   AI PodCast — editorial / technical look
    ========================================================================== */
 
 :root {
@@ -280,29 +280,78 @@ button { font: inherit; color: inherit; }
 
 .hero {
   position: relative;
-  min-height: min(78vh, 720px);
+  min-height: calc(100svh - var(--nav-h));
   display: grid;
   grid-template-rows: auto 1fr auto;
+  overflow: hidden;
   border-bottom: 1px solid var(--line);
+  background: var(--bg);
 }
 
-/* Rings get their own clipping box so the wordmark letters can fly out of the hero */
-.hero-bg { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+/* Spiral of recent titles (laid out by app.js, moved by motion.js) */
+.spiral { position: absolute; inset: 0; z-index: 1; }
+.spiral-stage { position: absolute; inset: 0; transform-origin: 50% 50%; }
+.spiral-line { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.spiral-line path { fill: none; stroke: var(--line-2); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.spiral-items { position: absolute; inset: 0; }
 
-.hero-rings {
+/* Each title is an upright square card centred on its point of the spiral */
+.sp-item {
+  --card: 136px;
   position: absolute;
-  inset: -20%;
-  background: repeating-radial-gradient(circle at 42% 58%, transparent 0 54px, var(--ring) 54px 55px);
-  -webkit-mask-image: radial-gradient(ellipse at 42% 55%, #000 25%, transparent 70%);
-          mask-image: radial-gradient(ellipse at 42% 55%, #000 25%, transparent 70%);
-  animation: breathe 18s ease-in-out infinite alternate;
-  pointer-events: none;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  opacity: calc(var(--o, 1) * var(--in, 1));
+  text-decoration: none;
+  color: inherit;
+  will-change: transform, opacity;
 }
-@keyframes breathe {
-  from { transform: scale(1) rotate(0deg); }
-  to   { transform: scale(1.06) rotate(4deg); }
+.sp-card {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--card);
+  height: var(--card);
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 10px 11px 9px;
+  background: var(--bg);
+  border: 1px solid var(--line-2);
+  transform: translate(-50%, -50%);
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.2s, box-shadow 0.3s;
 }
+.sp-top { display: flex; justify-content: space-between; align-items: center; }
+.sp-date { font-family: var(--f-mono); font-size: 10px; letter-spacing: 0.08em; color: var(--ink-3); }
+.sp-top i { width: 7px; height: 7px; background: var(--ink); }
+.sp-item.is-extra .sp-top i { background: transparent; border: 1.5px solid var(--extra); border-radius: 50%; }
+.sp-title {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  font-family: var(--f-cjk-bold);
+  font-weight: 700;
+  font-size: 13.5px;
+  line-height: 1.38;
+  color: var(--ink);
+}
+.sp-kind { margin-top: auto; font-family: var(--f-mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); }
+.sp-item.is-extra .sp-kind { color: var(--extra); }
 
+.spiral-items:hover .sp-item:not(:hover) { filter: opacity(0.45); }
+.sp-item:hover { z-index: 200 !important; }
+.sp-item:hover .sp-card, .sp-item:focus-visible .sp-card {
+  border-color: var(--ink);
+  box-shadow: 4px 4px 0 var(--ink);
+  transform: translate(calc(-50% - 2px), calc(-50% - 2px));
+}
+.sp-item:hover .sp-title { text-decoration: underline; text-underline-offset: 3px; }
+
+.hero-top, .hero-center, .hero-bottom { z-index: 2; pointer-events: none; }
 .hero-top {
   position: relative;
   display: flex;
@@ -321,24 +370,31 @@ button { font: inherit; color: inherit; }
   padding: 24px var(--gutter);
 }
 
+/* Soft glow behind the wordmark so the spiral fades out under it */
+.hero-halo {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(760px, 92vw);
+  height: min(420px, 60vw);
+  transform: translate(-50%, -50%);
+  background: radial-gradient(closest-side, var(--bg) 55%, color-mix(in srgb, var(--bg) 0%, transparent));
+}
+
 .wordmark {
+  position: relative;
   margin: 0;
   font-family: var(--f-display);
   font-stretch: 125%;
   font-weight: 900;
-  font-size: clamp(44px, 11.5vw, 168px);
-  line-height: 0.84;
+  font-size: clamp(40px, 7.4vw, 112px);
+  line-height: 0.86;
   letter-spacing: -0.02em;
   text-transform: uppercase;
 }
-.wordmark { position: relative; z-index: 60; }
 .wm-word { display: block; white-space: nowrap; }
-.wm-l { display: inline-block; will-change: transform; }
-/* --fill (0..1) is animated so the outline word turns solid as it docks */
-.wm-word.is-outline .wm-l {
-  color: color-mix(in srgb, var(--ink) calc(var(--fill, 0) * 100%), transparent);
-  -webkit-text-stroke: 1.5px var(--ink);
-}
+.wm-l { display: inline-block; }
+.wm-word.is-outline .wm-l { color: transparent; -webkit-text-stroke: 1.5px var(--ink); }
 
 .hero-tagline {
   margin: 28px 0 0;
@@ -437,7 +493,6 @@ button { font: inherit; color: inherit; }
 }
 .nav-wordmark .wm-gap { display: inline-block; width: 0.5em; }
 html:not(.motion) .nav-wordmark, .wm-docked .nav-wordmark { opacity: 1; }
-.wm-docked .wordmark { visibility: hidden; }
 
 /* Headline ticker under the hero */
 .ticker {
@@ -1027,11 +1082,13 @@ mark { background: var(--mark-bg); color: inherit; padding: 0 1px; }
 }
 
 @media (max-width: 640px) {
+  .sp-item { --card: 104px; }
+  .sp-card { padding: 8px 9px 7px; gap: 5px; }
+  .sp-title { font-size: 12px; -webkit-line-clamp: 3; }
   .nav-links { display: none; }
   .cta-long { display: none; }
   .nav-wordmark { font-size: 11px; justify-content: flex-start; }
   .nav-cta { padding: 0 14px; }
-  .hero { min-height: 560px; }
   .hero-top .mono:last-child { display: none; }
   .hero-bottom { flex-direction: column; align-items: stretch; }
   .hero-hint { display: none; }
@@ -1057,5 +1114,7 @@ mark { background: var(--mark-bg); color: inherit; padding: 0 1px; }
   html { scroll-behavior: auto; }
 }
 
-/* GSAP drives the rings while the motion layer is on */
-.motion .hero-rings { animation: none; }
+
+/* Spiral titles stay hidden until placed; with motion on they fade in during the intro */
+.sp-item:not([style]) { visibility: hidden; }
+.motion .sp-item { --in: 0; }

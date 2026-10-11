@@ -1,5 +1,5 @@
 /* Motion layer: smooth scrolling (Lenis) + scroll-linked animation (GSAP ScrollTrigger).
- * - Hero wordmark letters scatter on scroll, then fly into the small wordmark in the nav
+ * - Hero: recent titles drift along a spiral around the wordmark; scrolling turns it while pinned
  * - Headline ticker whose speed/direction follows the scroll
  * - Split-text and fade-up reveals, fixed section index, footer wordmark fill
  * The page is fully usable without this file; it only adds motion when the libraries load
@@ -22,16 +22,6 @@
 
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
-
-  // Deterministic random so the scatter pattern is the same on every visit
-  function rng(seed) {
-    return () => {
-      seed |= 0; seed = (seed + 0x6d2b79f5) | 0;
-      let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-    };
-  }
 
   /* ------------------------------------------------------------------------
      In-page anchors scroll smoothly through Lenis
@@ -168,75 +158,68 @@
      Homepage
      ------------------------------------------------------------------------ */
   const home = {
-    letters: [],
-    tl: null,
+    drift: 0,        // slow continuous travel along the spiral (px)
+    scrollShift: 0,  // extra travel driven by scrolling through the pinned hero
+    hover: false,
 
     init() {
-      this.letters = [...document.querySelectorAll("#wordmark .wm-l")];
-      this.mini = [...document.querySelectorAll(".nav-wordmark .wm-l")];
-      this.fade = [".hero-top", "#tagline", ".hero-bottom"].map((s) => document.querySelector(s)).filter(Boolean);
-      gsap.set(this.letters, { "--fill": 0 });
+      const hero = document.querySelector(".hero");
+      if (!hero) return;
+      ScrollTrigger.clearScrollMemory("manual"); // reloads start from the top, where the pinned hero begins
 
-      const start = () => {
-        if (scrollY > 40) return this.build();
-        gsap.timeline({ onComplete: () => this.build() })
-          .from(this.letters, {
-            yPercent: 70, opacity: 0, rotationX: -70, filter: "blur(14px)",
-            duration: 1.3, ease: "expo.out", stagger: { each: 0.045, from: "start" },
-            clearProps: "filter,rotationX",
-          })
-          .from(this.fade, { y: 18, opacity: 0, duration: 0.9, ease: "power3.out", stagger: 0.1 }, 0.45)
-          .from(".hero-rings", { scale: 0.7, opacity: 0, duration: 2, ease: "expo.out" }, 0);
+      // Pin the first screen while the spiral turns, then release it
+      const pin = gsap.timeline({
+        scrollTrigger: {
+          trigger: hero,
+          start: `top ${NAV_H}px`,
+          end: () => `+=${Math.round(innerHeight * 0.9)}`,
+          pin: true,
+          scrub: 0.8,
+          invalidateOnRefresh: true,
+          onUpdate: (st) => root.classList.toggle("wm-docked", st.progress > 0.85),
+        },
+      })
+        .to(this, { scrollShift: () => (window.spiral.L || 4000) * 0.3, ease: "none", duration: 1 }, 0)
+        .to(".spiral-stage", { scale: 1.12, ease: "power1.in", duration: 1 }, 0)
+        .to([".hero-top", ".hero-bottom"], { y: -30, opacity: 0, ease: "power1.in", duration: 0.3 }, 0)
+        .to(".hero-center", { scale: 0.6, opacity: 0, ease: "power2.in", duration: 0.55 }, 0.35);
+
+      // Wordmark letters rise in on load
+      const intro = () => {
+        if (scrollY > 40) return;
+        gsap.timeline()
+          .from("#wordmark .wm-l", { yPercent: 70, opacity: 0, filter: "blur(14px)", duration: 1.3, ease: "expo.out", stagger: 0.05, clearProps: "filter" })
+          .from([".hero-top > *", "#tagline", ".hero-bottom > *"], { y: 18, opacity: 0, duration: 0.9, ease: "power3.out", stagger: 0.08 }, 0.4);
       };
-      (document.fonts ? document.fonts.ready : Promise.resolve()).then(start);
+      (document.fonts ? document.fonts.ready : Promise.resolve()).then(intro);
 
-      let t;
-      addEventListener("resize", () => { clearTimeout(t); t = setTimeout(() => this.tl && this.build(), 200); });
+      // Titles keep drifting outward; hovering one eases the drift to a stop so it can be clicked
+      const list = document.querySelector(".spiral-items");
+      list.addEventListener("pointerover", (e) => { this.hover = !!e.target.closest(".sp-item"); });
+      list.addEventListener("pointerleave", () => { this.hover = false; });
+      const visible = () => scrollY < pin.scrollTrigger.end + innerHeight;   // skip work once the hero is gone
+      let speed = 1;
+      gsap.ticker.add((time, dt) => {
+        if (!visible() || !window.spiral.L) return;
+        speed += ((this.hover ? 0 : 1) - speed) * 0.08;
+        this.drift += dt * 0.02 * speed;
+        window.spiral.render(this.drift + this.scrollShift);
+      });
     },
 
-    // Scroll-scrubbed flight: big letter -> scattered -> docked into the nav wordmark
-    build() {
-      if (this.tl) { this.tl.scrollTrigger.kill(); this.tl.kill(); }
-      root.classList.remove("wm-docked");
-      gsap.set(this.letters, { clearProps: "transform,yPercent" });
-
-      const hero = document.querySelector(".hero");
-      const D = Math.max(320, hero.offsetHeight * 0.85);   // scroll distance of the whole flight
-      const sy = scrollY;
-      const vw = innerWidth, vh = innerHeight;
-      const rand = rng(11);
-
-      this.tl = gsap.timeline({
-        scrollTrigger: {
-          start: 0,
-          end: D,
-          scrub: 0.9,
-          onUpdate: (st) => root.classList.toggle("wm-docked", st.progress > 0.995),
-        },
-      });
-
-      this.letters.forEach((l, i) => {
-        const m = this.mini[i];
-        if (!m) return;
-        const a = l.getBoundingClientRect();
-        const b = m.getBoundingClientRect();
-        const ax = a.left + a.width / 2, ay = a.top + sy + a.height / 2;   // document coords
-        const bx = b.left + b.width / 2, by = b.top + b.height / 2;        // nav is pinned at top
-        const s = parseFloat(getComputedStyle(m).fontSize) / parseFloat(getComputedStyle(l).fontSize);
-        const tx = bx - ax;
-        const ty = by - (ay - D);                                          // page has moved up by D at the end
-        const mx = (rand() - 0.5) * vw * 0.7 + tx * 0.15;
-        const my = D * 0.5 + (rand() - 0.55) * vh * 0.5;                   // keep the scatter on screen
-        const t0 = i * 0.012;
-        this.tl
-          .to(l, { x: mx, y: my, rotation: (rand() - 0.5) * 80, scale: 0.45 + rand() * 0.7, ease: "sine.inOut", duration: 0.5 }, t0)
-          .to(l, { x: tx, y: ty, rotation: 0, scale: s, "--fill": 1, ease: "power3.inOut", duration: 0.48 }, t0 + 0.5);
-      });
-
-      this.tl
-        .to(this.fade, { y: -70, opacity: 0, ease: "power1.in", duration: 0.4, stagger: 0.04 }, 0)
-        .to(".hero-rings", { scale: 1.7, rotation: 30, ease: "none", duration: 1 }, 0)
-        .to(".hero-bg", { opacity: 0, ease: "none", duration: 1 }, 0);
+    // Once the titles exist: draw the spiral line, then let the titles fade in from the centre outward
+    introSpiral(tries = 0) {
+      const path = document.querySelector(".spiral-line path");
+      const items = document.querySelectorAll(".sp-item");
+      if (!items.length || this.spiralShown) return;
+      if (path && !path.getTotalLength() && tries < 60) return requestAnimationFrame(() => this.introSpiral(tries + 1));
+      this.spiralShown = true;
+      const tl = gsap.timeline();
+      if (path && path.getTotalLength) {
+        const len = path.getTotalLength();
+        tl.fromTo(path, { strokeDasharray: len, strokeDashoffset: len }, { strokeDashoffset: 0, duration: 2.6, ease: "power2.inOut", clearProps: "strokeDasharray,strokeDashoffset" }, 0);
+      }
+      tl.fromTo(items, { "--in": 0 }, { "--in": 1, duration: 0.9, ease: "power2.out", stagger: 0.07 }, 0.5);
     },
   };
 
@@ -268,6 +251,7 @@
 
   function onHomeRender() {
     initTicker();
+    home.introSpiral();
     splitAll(".section-title, .month-name");
     reveal(".section-head .mono");
     document.querySelectorAll(".section-head").forEach((h) => io.observe(h));
@@ -315,9 +299,10 @@
   });
 
   document.addEventListener("DOMContentLoaded", () => {
+    // the pinned hero first, so triggers further down account for its pin spacing
+    if (document.body.dataset.page === "home") home.init();
     initSections();
     initFooter();
-    if (document.body.dataset.page === "home") home.init();
     if (document.body.dataset.page === "read") root.classList.add("wm-docked");
   });
 })();

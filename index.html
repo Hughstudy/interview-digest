@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Interview Digest</title>
+  <title>AI PodCast</title>
   <meta name="description" content="AI 每日抓取的长访谈精读与加更报告">
   <script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' fill='%23101014'/%3E%3Cpath d='M4 19 9 5h3.5l-5 14zM11 19l5-14h3.5l-5 14z' fill='%23f2f1ee'/%3E%3C/svg%3E">
@@ -45,12 +45,18 @@
 
   <main class="page">
     <section class="hero" id="hero" data-section="Index">
-      <div class="hero-bg" aria-hidden="true"><div class="hero-rings"></div></div>
+      <nav class="spiral" id="spiral" aria-label="Recent episodes">
+        <div class="spiral-stage">
+          <svg class="spiral-line" aria-hidden="true"><path /></svg>
+          <div class="spiral-items"></div>
+        </div>
+      </nav>
       <div class="hero-top">
         <span class="mono">00 / Index</span>
         <span class="mono">Markdown · Rendered daily</span>
       </div>
       <div class="hero-center">
+        <div class="hero-halo" aria-hidden="true"></div>
         <h1 class="wordmark" id="wordmark"></h1>
         <p class="hero-tagline" id="tagline"></p>
       </div>
@@ -87,7 +93,7 @@
     </section>
 
     <footer class="footer" id="about" data-section="About">
-      <div class="footer-mark">Digest</div>
+      <div class="footer-mark">PodCast</div>
       <div class="footer-notes mono">
         Daily → <code>InterviewMarkdown/yyyy-mm-dd.md</code><br>
         Extra → <code>InterviewMarkdown/yyyy-mm-dd-topic.md</code><br>

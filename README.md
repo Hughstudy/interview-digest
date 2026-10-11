@@ -1,4 +1,4 @@
-# Interview Digest
+# AI PodCast
 
 A static reader for the daily AI-fetched markdown reports, hosted on GitHub Pages.
 
