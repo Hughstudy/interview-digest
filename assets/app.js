@@ -11,6 +11,7 @@ const CONFIG = {
   manifest: "manifest.json",
   charsPerMinute: 450,
   spiralCount: 12, // most recent reports placed on the homepage spiral
+  archivePage: 10, // archive shows this many at first, and loads this many more per click
 };
 
 const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
@@ -374,52 +375,72 @@ function initArchive(entries, counts) {
     return String(text).split(re).map((s, i) => (i % 2 ? `<mark>${esc(s)}</mark>` : esc(s))).join("");
   }
 
+  const root = $("#archive-list");
+  let list = [], shown = 0, q = "";
+
+  // Filter or search changed: start over with the first page
   function render() {
-    const q = input.value.trim();
+    q = input.value.trim();
     const ql = q.toLowerCase();
-    const list = entries.filter((e) =>
+    list = entries.filter((e) =>
       (filter === "all" || e.kind === filter) &&
       (!ql || `${e.title} ${e.videoTitle || ""} ${e.show || ""} ${e.summary} ${e.slug}`.toLowerCase().includes(ql)));
+    shown = 0;
+    root.innerHTML = list.length ? "" : `<div class="empty">没有匹配「${esc(q)}」的内容</div>`;
+    if (list.length) more();
+    else emit("archive");
+  }
 
-    if (!list.length) {
-      $("#archive-list").innerHTML = `<div class="empty">没有匹配「${esc(q)}」的内容</div>`;
-      return;
-    }
-
-    const groups = new Map();
-    for (const e of list) {
+  // Append the next page; cards already on screen stay where they are
+  function more() {
+    root.querySelector(".load-more")?.remove();
+    const next = list.slice(shown, shown + CONFIG.archivePage);
+    shown += next.length;
+    for (const e of next) {
       const key = e.date ? e.date.slice(0, 7) : "other";
-      if (!groups.has(key)) groups.set(key, []);
-      groups.get(key).push(e);
+      let grid = root.querySelector(`.grid[data-month="${key}"]`);
+      if (!grid) {
+        root.insertAdjacentHTML("beforeend", monthHead(key) + `<div class="grid" data-month="${key}"></div>`);
+        grid = root.lastElementChild;
+      }
+      grid.insertAdjacentHTML("beforeend", card(e));
     }
-
-    $("#archive-list").innerHTML = [...groups].map(([key, items]) => {
-      const [y, m] = key.split("-");
-      const name = key === "other" ? "Other" : `${MONTHS_LONG[Number(m) - 1]} ${y}`;
-      return `
-        <div class="month-head">
-          <span class="month-name">${name}</span>
-          <span class="mono">${key === "other" ? "" : `${y} / ${m} · `}${items.length} files</span>
-        </div>
-        <div class="grid">
-          ${items.map((e) => {
-            const p = e.date ? dateParts(e.date) : null;
-            const { kicker, headline } = titleOf(e);
-            return `
-              <a class="card ${e.kind === "extra" ? "is-extra" : ""}" href="${readUrl(e.slug)}">
-                <div class="card-top">
-                  <span class="card-day">${p ? p.dd : "··"}<small>${p ? `${p.mon} · ${p.wd}` : ""}</small></span>
-                  ${kindBadge(e.kind)}
-                </div>
-                ${kicker ? `<div class="card-kicker">${highlight(kicker, q)}</div>` : ""}
-                <h3 class="card-title">${highlight(headline, q)}</h3>
-                ${e.summary ? `<p class="card-summary">${highlight(e.summary, q)}</p>` : ""}
-                <div class="card-foot mono"><span>${esc(e.date || e.slug)}</span><span>≈ ${e.readMinutes || "?"} min <span class="arrow">→</span></span></div>
-              </a>`;
-          }).join("")}
-        </div>`;
-    }).join("");
+    const left = list.length - shown;
+    if (left > 0) {
+      root.insertAdjacentHTML("beforeend", `
+        <button class="load-more" type="button">
+          <span class="load-dots" aria-hidden="true">···</span>
+          <span class="mono">Load ${Math.min(CONFIG.archivePage, left)} more · ${left} older</span>
+        </button>`);
+    }
     emit("archive");
+  }
+  root.addEventListener("click", (ev) => { if (ev.target.closest(".load-more")) more(); });
+
+  function monthHead(key) {
+    const [y, m] = key.split("-");
+    const total = list.filter((e) => (e.date ? e.date.slice(0, 7) : "other") === key).length;
+    return `
+      <div class="month-head">
+        <span class="month-name">${key === "other" ? "Other" : `${MONTHS_LONG[Number(m) - 1]} ${y}`}</span>
+        <span class="mono">${key === "other" ? "" : `${y} / ${m} · `}${total} ${total === 1 ? "file" : "files"}</span>
+      </div>`;
+  }
+
+  function card(e) {
+    const p = e.date ? dateParts(e.date) : null;
+    const { kicker, headline } = titleOf(e);
+    return `
+      <a class="card ${e.kind === "extra" ? "is-extra" : ""}" href="${readUrl(e.slug)}">
+        <div class="card-top">
+          <span class="card-day">${p ? p.dd : "··"}<small>${p ? `${p.mon} · ${p.wd}` : ""}</small></span>
+          ${kindBadge(e.kind)}
+        </div>
+        ${kicker ? `<div class="card-kicker">${highlight(kicker, q)}</div>` : ""}
+        <h3 class="card-title">${highlight(headline, q)}</h3>
+        ${e.summary ? `<p class="card-summary">${highlight(e.summary, q)}</p>` : ""}
+        <div class="card-foot mono"><span>${esc(e.date || e.slug)}</span><span>≈ ${e.readMinutes || "?"} min <span class="arrow">→</span></span></div>
+      </a>`;
   }
 
   render();
