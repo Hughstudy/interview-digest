@@ -842,7 +842,7 @@ mark { background: var(--mark-bg); color: inherit; padding: 0 1px; }
 .crumbs a { text-decoration: none; color: var(--ink-2); }
 .crumbs a:hover { color: var(--ink); text-decoration: underline; }
 
-.doc-title-wrap { padding: clamp(32px, 6vw, 72px) var(--gutter) clamp(28px, 4vw, 48px); max-width: 1180px; }
+.doc-title-wrap { padding: clamp(32px, 6vw, 72px) var(--gutter) clamp(28px, 4vw, 48px); max-width: 1240px; margin-inline: auto; }
 .doc-kicker { margin: 18px 0 10px; color: var(--ink-3); font-weight: 500; font-size: 15px; }
 .doc-title {
   margin: 0;
@@ -864,6 +864,7 @@ mark { background: var(--mark-bg); color: inherit; padding: 0 1px; }
   grid-template-columns: minmax(0, 1fr) 260px;
   gap: 0;
   max-width: 1240px;
+  margin-inline: auto;
 }
 .doc-body { padding: 40px var(--gutter) 64px; min-width: 0; border-right: 1px solid var(--line); }
 
