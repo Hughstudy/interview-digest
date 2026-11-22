@@ -1,7 +1,19 @@
 {
-  "generated": "2026-11-22T04:02:16Z",
-  "count": 128,
+  "generated": "2026-11-22T20:25:17Z",
+  "count": 129,
   "entries": [
+    {
+      "slug": "2026-11-23",
+      "file": "2026-11-23.md",
+      "date": "2026-11-23",
+      "kind": "daily",
+      "title": "📹 每日长访谈深度总结 | 2026-11-23",
+      "videoTitle": "Why AI Has DHH Working 16-Hour Days",
+      "show": "a16z",
+      "summary": "当日 72 小时窗口内唯一的高密度新内容：DHH 用自己「半年零手写代码、全部 agent 写出 Omarchy」的一手实践，论证 macOS/Windows 为何不适合 agent 时代、代码护城河为何已死，以及品味（taste）为何成了最后的稀缺品——对重度 AI 编码用户和 Steel Front 项目主理人都是直接可借鉴的一手经验。（注：发布在 a16z 频道，但 37signals 是著名反 VC 公司，无投资关系；Oma...",
+      "chars": 13052,
+      "readMinutes": 29
+    },
     {
       "slug": "2026-11-22",
       "file": "2026-11-22.md",
