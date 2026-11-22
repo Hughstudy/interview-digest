@@ -15,7 +15,7 @@ InterviewMarkdown/
 
 ## How it works
 
-`scripts/build-manifest.ps1` scans `InterviewMarkdown/` and writes `manifest.json` (title, date, type, summary, length) for the homepage. You don't commit it: the workflow in `.github/workflows/deploy.yml` builds it and deploys the site on every push to `main`.
+`scripts/build-manifest.py` scans `InterviewMarkdown/` and writes `manifest.json` (title, date, type, summary, length) for the homepage. Run it locally before pushing (`python3 scripts/build-manifest.py`) and commit `manifest.json` together with the markdown — GitHub Pages deploys straight from the `main` branch, with no Actions runner in the loop. (`scripts/build-manifest.ps1` is kept as the original PowerShell reference.)
 
 ## One-time GitHub setup
 
