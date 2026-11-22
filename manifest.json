@@ -1,6 +1,6 @@
 {
-  "generated": "2026-11-22T03:45:47Z",
-  "count": 127,
+  "generated": "2026-11-22T04:02:16Z",
+  "count": 128,
   "entries": [
     {
       "slug": "2026-11-22",
@@ -13,6 +13,18 @@
       "summary": "Anthropic 上市首日 + Nvidia 财报后暴跌 + 开源镇压传闻，三条主线正好压在 Hugh 的三个兴趣（AI/半导体/金融）交叉点上，Chamath 的\"10 家 Mega Corp\"框架是这一集的骨架，且整集充满可验证数字。",
       "chars": 10221,
       "readMinutes": 23
+    },
+    {
+      "slug": "2026-11-22-antom-cross-border-payments",
+      "file": "2026-11-22-antom-cross-border-payments.md",
+      "date": "2026-11-22",
+      "kind": "extra",
+      "title": "📹 手动加更 | 2026-11-22 · AI重构跨境支付：效率、风控与Agent商业时代",
+      "videoTitle": "AI重构跨境支付：效率、风控与Agent商业时代",
+      "show": "硅谷101",
+      "summary": "跨境支付链路（收单→卡组织→发卡→清算结算）的教科书式拆解 + Antom 全套 AI 产品的口径集中展示。⚠️本期是与蚂蚁国际合作的商业内容，自报数字密度极高——把它当\"支付行业科普 + 一份厂商产品宣言\"读，价值最大。",
+      "chars": 7262,
+      "readMinutes": 16
     },
     {
       "slug": "2026-11-21",
