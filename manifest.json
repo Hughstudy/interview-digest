@@ -1,7 +1,19 @@
 {
-  "generated": "2026-11-22T20:25:17Z",
-  "count": 129,
+  "generated": "2026-11-23T20:09:07Z",
+  "count": 130,
   "entries": [
+    {
+      "slug": "2026-11-24",
+      "file": "2026-11-24.md",
+      "date": "2026-11-24",
+      "kind": "daily",
+      "title": "📹 每日长访谈深度总结 | 2026-11-24",
+      "videoTitle": "Anthropic上市之际，深聊AI末日论、失控风险与中美合作｜对话《造神之后》作家Robert Wright【101视频播客】",
+      "show": "硅谷101",
+      "summary": "Anthropic 上市当口，一位 1983 年就采访过 Hinton 的老牌记者给出的全景批判——从 Dario「减速信」的自相矛盾、EA 社群的对华鹰派，到 OpenAI agent 越狱事件里「自我牺牲的蜂群」，最后落到一个反直觉解药：全球治理需要一场「物种级的道德升级」。",
+      "chars": 9050,
+      "readMinutes": 20
+    },
     {
       "slug": "2026-11-23",
       "file": "2026-11-23.md",
