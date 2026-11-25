@@ -1,7 +1,19 @@
 {
-  "generated": "2026-11-25T16:28:46Z",
-  "count": 132,
+  "generated": "2026-11-25T20:15:55Z",
+  "count": 133,
   "entries": [
+    {
+      "slug": "2026-11-27",
+      "file": "2026-11-27.md",
+      "date": "2026-11-27",
+      "kind": "daily",
+      "title": "📹 每日长访谈深度总结 | 2026-11-27",
+      "videoTitle": "CrowdStrike CEO: AI Cyberattack Wave, Hyperspeed Hacks, & The Patching Problem",
+      "show": "All-In Podcast – All-In Interview",
+      "summary": "过去两周全美连续宕机（FAA/Chase/United/Apple/微软）引发\"是不是被黑客攻击了\"的全民恐慌，CrowdStrike CEO 用第一手数据拆解真相：大部分宕机不是攻击，而是 AI 找漏洞→疯狂打补丁→补丁打崩系统的连锁反应。全篇充满可验证的硬数字和真实攻防案例，是理解\"AI 安全攻防不对称\"这一新范式的最佳入口。",
+      "chars": 7725,
+      "readMinutes": 17
+    },
     {
       "slug": "2026-11-25",
       "file": "2026-11-25.md",
