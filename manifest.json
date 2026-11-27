@@ -1,7 +1,19 @@
 {
-  "generated": "2026-11-26T20:18:13Z",
-  "count": 134,
+  "generated": "2026-11-27T20:18:03Z",
+  "count": 135,
   "entries": [
+    {
+      "slug": "2026-11-28",
+      "file": "2026-11-28.md",
+      "date": "2026-11-28",
+      "kind": "daily",
+      "title": "📹 每日长访谈深度总结 | 2026-11-28",
+      "videoTitle": "Will we have superintelligence by 2029? — An honest conversation about what's happening in AI",
+      "show": "Dwarkesh Patel Podcast",
+      "summary": "末日派与乐观派两位严肃研究者当面对质，把\"几年内出超智能\"这个赌注拆成了可以逐条辩论的具体分歧——Ege 最惊讶的发现是两人同意的地方远比预期多，而剩下那点分歧恰好是生死攸关的部分。",
+      "chars": 7804,
+      "readMinutes": 17
+    },
     {
       "slug": "2026-11-27",
       "file": "2026-11-27.md",
